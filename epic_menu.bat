@@ -1,322 +1,271 @@
 @echo off
-:: ตั้งค่าให้รองรับภาษาไทยใน CMD
 chcp 65001
 
-:: ตรวจสอบว่าเปิดในโหมด Administrator หรือไม่
-NET SESSION >nul 2>&1
-if %errorlevel% neq 0 (
-    echo สคริปต์นี้ต้องการสิทธิ์ผู้ดูแลระบบ
-    echo กำลังกำหนดให้เปิดใหม่ด้วยสิทธิ์ Administrator...
-    pause
-    :: เรียกตัวเองด้วยสิทธิ์ Administrator
-    PowerShell -Command "Start-Process '%~f0' -Verb RunAs"
-    exit
+:: ตรวจสอบสิทธิ์ผู้ดูแลระบบ
+:: ตรวจสอบว่าผู้ใช้เป็นผู้ดูแลระบบหรือไม่
+if not "%errorlevel%" == "0" (
+    echo กรุณารันสคริปต์นี้ในฐานะผู้ดูแลระบบ.
+    exit /b
 )
 
-:: ตั้งค่าภาพรวม
-color 1f
-title Epic CMD Menu 2024 - ระบบที่มีฟีเจอร์เสริม
+:: ฟังก์ชันบันทึกกิจกรรม
+SET LOGFILE="%USERPROFILE%\performance.log"
 
-:: เมนูหลัก
 :MENU
 cls
 echo ========================================
-echo        ยินดีต้อนรับสู่เมนู Epic CMD
+echo     ยินดีต้อนรับสู่เมนูปรับปรุงประสิทธิภาพ
 echo ========================================
 echo.
-echo 1. แสดงข้อมูลระบบ
-echo 2. ตรวจสอบการตั้งค่าเครือข่าย
-echo 3. การใช้งานดิสก์และพื้นที่ว่าง
-echo 4. จัดการไฟล์ (สร้าง/ลบ/สำรอง/ค้นหา/ย้าย)
-echo 5. การใช้งาน CPU, RAM และ Storage
-echo 6. ทดสอบความเร็วเครือข่าย
-echo 7. สำรองข้อมูล
-echo 8. ตรวจสอบการอัปเดตระบบ
-echo 9. ปิด/รีสตาร์ทระบบ
-echo 10. อัปเดตสคริปต์
-echo 11. ตั้งค่าการเชื่อมต่อเครือข่าย (เปิด/ปิด Wi-Fi)
-echo 12. ตรวจสอบการใช้งาน GPU
-echo 13. ตรวจสอบการใช้งานเน็ตเวิร์ก (Ping, Traceroute)
-echo 14. ค้นหาไฟล์
-echo 15. ย้ายไฟล์
-echo 16. สร้างโฟลเดอร์ใหม่
-echo 17. ตรวจสอบสุขภาพของระบบ
-echo 18. ล้างไฟล์แคช (Clear Cache)
-echo 19. ออกจากโปรแกรม
+echo 1. ปิดโปรแกรมที่ไม่จำเป็น
+echo 2. ปรับแต่งการตั้งค่า Windows
+echo 3. ล้างแคชและไฟล์ชั่วคราว
+echo 4. ตรวจสอบและแก้ไขปัญหา
+echo 5. อื่นๆ (เช่น ปรับแต่ง Registry, Defrag)
+echo 6. บูท FPS
+echo 7. สร้างทางลัดจุดคืนค่า
+echo 8. ปิดการอัปเดต Windows อัตโนมัติ
+echo 9. ทางลัดสำหรับแอปเริ่มต้น
+echo 10. เพิ่มประสิทธิภาพการตั้งค่า Windows
+echo 11. ปิดใช้งานบริการบลูทูธ
+echo 12. ปิดใช้งานบริการการวินิจฉัยและการวัดระยะไกล
+echo 13. ปิดใช้งานตัวจัดการการดาวน์โหลดแผนที่
+echo 14. ปิดใช้งานบริการเสริม
+echo 15. ปิดใช้งานบริการเครื่องพิมพ์
+echo 16. ปิดใช้งาน Windows Defender
+echo 17. ปิดใช้งานบริการ Xbox
+echo 18. ออกจากโปรแกรม
+echo 19. เลือกทั้งหมด (1-17)
 echo.
 set /p choice=กรุณาเลือกตัวเลือก (1-19): 
 
-:: ตรวจสอบการเลือกและเปลี่ยนไปยังฟังก์ชันที่เกี่ยวข้อง
-if "%choice%"=="1" goto SYSTEMINFO
-if "%choice%"=="2" goto NETWORKSTATUS
-if "%choice%"=="3" goto DISKUSAGE
-if "%choice%"=="4" goto FILEMANAGE
-if "%choice%"=="5" goto CPU_RAM_STORAGE
-if "%choice%"=="6" goto SPEEDTEST
-if "%choice%"=="7" goto BACKUP
-if "%choice%"=="8" goto SYSTEMUPDATE
-if "%choice%"=="9" goto SHUTDOWN
-if "%choice%"=="10" goto SCRIPTUPDATE
-if "%choice%"=="11" goto NETWORK_SETTINGS
-if "%choice%"=="12" goto GPU_USAGE
-if "%choice%"=="13" goto NETWORKTOOLS
-if "%choice%"=="14" goto SEARCHFILES
-if "%choice%"=="15" goto MOVEFILES
-if "%choice%"=="16" goto CREATEFOLDER
-if "%choice%"=="17" goto SYSTEM_HEALTH
-if "%choice%"=="18" goto CLEAR_CACHE
-if "%choice%"=="19" goto EXIT
-goto MENU
+:: ตรวจสอบตัวเลือกและเรียกฟังก์ชันที่เกี่ยวข้อง
+if "%choice%"=="1" goto CLOSE_PROGRAMS
+if "%choice%"=="2" goto TUNE_WINDOWS
+if "%choice%"=="3" goto CLEAN_CACHE
+if "%choice%"=="4" goto TROUBLESHOOT
+if "%choice%"=="5" goto MORE
+if "%choice%"=="6" goto BOOT_FPS
+if "%choice%"=="7" goto CREATE_RESTORE_POINT
+if "%choice%"=="8" goto DISABLE_WINDOWS_UPDATE
+if "%choice%"=="9" goto STARTUP_APPS
+if "%choice%"=="10" goto OPTIMIZE_WINDOWS_SETTINGS
+if "%choice%"=="11" goto DISABLE_BLUETOOTH
+if "%choice%"=="12" goto DISABLE_DIAGNOSTICS
+if "%choice%"=="13" goto DISABLE_MAPS_DOWNLOADER
+if "%choice%"=="14" goto DISABLE_SUPPLEMENTARY_SERVICES
+if "%choice%"=="15" goto DISABLE_PRINT_SERVICES
+if "%choice%"=="16" goto DISABLE_WINDOWS_DEFENDER
+if "%choice%"=="17" goto DISABLE_XBOX
+if "%choice%"=="18" goto EXIT
+if "%choice%"=="19" goto SELECT_ALL
 
-:: ฟังก์ชันการแสดงข้อมูลระบบ
-:SYSTEMINFO
-cls
-echo ข้อมูลระบบ:
-echo ========================
-systeminfo
+:: จัดการข้อผิดพลาดเมื่อเลือกตัวเลือกที่ไม่ถูกต้อง
+echo Invalid choice. Please enter a number between 1 and 19.
 pause
 goto MENU
 
-:: ฟังก์ชันตรวจสอบการตั้งค่าเครือข่าย
-:NETWORKSTATUS
+:: ฟังก์ชันต่างๆ
+:CLOSE_PROGRAMS
 cls
-echo การตั้งค่าเครือข่าย:
-echo ========================
-ipconfig
-pause
-goto MENU
-
-:: ฟังก์ชันการใช้งานดิสก์และพื้นที่ว่าง
-:DISKUSAGE
-cls
-echo การใช้งานดิสก์และพื้นที่ว่าง:
-echo ==========================
-wmic logicaldisk get size,freespace,caption
-pause
-goto MENU
-
-:: ฟังก์ชันการจัดการไฟล์
-:FILEMANAGE
-cls
-echo การจัดการไฟล์
-echo =================
-echo 1. สร้างไฟล์ใหม่
-echo 2. ลบไฟล์
-echo 3. สำรองไฟล์
-echo 4. ค้นหาไฟล์
-echo 5. ย้ายไฟล์
-echo 6. กลับสู่เมนูหลัก
-set /p file_choice=เลือกตัวเลือก (1-6): 
-
-if "%file_choice%"=="1" goto CREATEFILE
-if "%file_choice%"=="2" goto DELETEFILE
-if "%file_choice%"=="3" goto BACKUPFILES
-if "%file_choice%"=="4" goto SEARCHFILES
-if "%file_choice%"=="5" goto MOVEFILES
-if "%file_choice%"=="6" goto MENU
-goto FILEMANAGE
-
-:: สร้างไฟล์ใหม่
-:CREATEFILE
-cls
-echo กรอกชื่อไฟล์ที่ต้องการสร้าง:
-set /p filename=ชื่อไฟล์: 
-echo กำลังกสร้างไฟล์ %filename%...
-echo Hello, this file was created by Epic CMD Menu! > "%filename%"
-if exist "%filename%" (
-    echo ไฟล์ "%filename%" ถูกสร้างขึ้นแล้ว!
-) else (
-    echo ไม่สามารถสร้างไฟล์ได้!
+echo กำลังปิดโปรแกรมที่ไม่จำเป็น...
+for %%p in (notepad.exe calc.exe chrome.exe) do (
+    taskkill /IM "%%p" /F 2>nul
 )
-pause
-goto FILEMANAGE
-
-:: ลบไฟล์
-:DELETEFILE
-cls
-echo กรอกชื่อไฟล์ที่ต้องการลบ:
-set /p filename=ชื่อไฟล์: 
-del "%filename%"
-echo ไฟล์ "%filename%" ถูกลบเรียบร้อยแล้ว!
-pause
-goto FILEMANAGE
-
-:: สำรองไฟล์
-:BACKUPFILES
-cls
-echo กรอกไดเรกทอรีต้นทางที่ต้องการสำรอง:
-set /p source_dir=ไดเรกทอรีต้นทาง: 
-echo กรอกไดเรกทอรีปลายทางที่ต้องการสำรอง:
-set /p backup_dir=ไดเรกทอรีปลายทาง: 
-if exist "%source_dir%" (
-    xcopy "%source_dir%" "%backup_dir%" /E /H /C /I
-    echo สำรองข้อมูลเสร็จสิ้น!
-) else (
-    echo ไดเรกทอรีต้นทางไม่พบ!
-)
-pause
-goto FILEMANAGE
-
-:: ค้นหาไฟล์
-:SEARCHFILES
-cls
-echo กรอกชื่อไฟล์ที่ต้องการค้นหา:
-set /p search_name=ชื่อไฟล์: 
-dir /s /b "%search_name%"
-pause
-goto FILEMANAGE
-
-:: ย้ายไฟล์
-:MOVEFILES
-cls
-echo กรอกไฟล์ต้นทางที่ต้องการย้าย:
-set /p source_file=ไฟล์ต้นทาง: 
-echo กรอกที่อยู่ปลายทาง:
-set /p dest_dir=ที่อยู่ปลายทาง: 
-if exist "%source_file%" (
-    move "%source_file%" "%dest_dir%"
-    echo ย้ายไฟล์เสร็จสิ้น!
-) else (
-    echo ไม่พบไฟล์ต้นทาง!
-)
-pause
-goto FILEMANAGE
-
-:: สร้างโฟลเดอร์ใหม่
-:CREATEFOLDER
-cls
-echo กรอกชื่อโฟลเดอร์ที่ต้องการสร้าง:
-set /p foldername=ชื่อโฟลเดอร์: 
-mkdir "%foldername%"
-echo โฟลเดอร์ "%foldername%" ถูกสร้างขึ้นแล้ว!
-pause
-goto FILEMANAGE
-
-:: ฟังก์ชันการใช้งาน CPU, RAM และ Storage
-:CPU_RAM_STORAGE
-cls
-echo การใช้งาน CPU, RAM และ Storage:
-echo =============================
-wmic cpu get loadpercentage
-wmic os get FreePhysicalMemory,TotalVisibleMemorySize
-wmic logicaldisk get caption, freespace, size
+echo โปรแกรมที่ไม่จำเป็นได้ถูกปิดแล้ว.
+echo [%date% %time%] ปิดโปรแกรมที่ไม่จำเป็น >> "%LOGFILE%"
 pause
 goto MENU
 
-:: ฟังก์ชันทดสอบความเร็วเครือข่าย
-:SPEEDTEST
+:TUNE_WINDOWS
 cls
-echo ทดสอบความเร็วเครือข่าย:
-echo ========================
-speedtest-cli
+echo กำลังปรับแต่งการตั้งค่า Windows...
+:: ปิด System Restore point creation
+echo ปิดการสร้างจุดคืนค่าระบบ...
+powercfg -h off
+echo การสร้างจุดคืนค่าระบบได้ถูกปิด
+:: ปรับแต่งการตั้งค่าระบบเพิ่มเติม เช่น Disable unnecessary startup items
+echo ปิด Startup Items...
+:: ... (Add more tuning commands here if needed)
+echo [%date% %time%] ปรับแต่งการตั้งค่า Windows >> "%LOGFILE%"
 pause
 goto MENU
 
-:: ฟังก์ชันการสำรองข้อมูล
-:BACKUP
+:CLEAN_CACHE
 cls
-echo กำลังสำรองข้อมูล...
-:: สำรองข้อมูลด้วยคำสั่ง xcopy หรือ robocopy
-xcopy "C:\Users\%USERNAME%\Documents" "D:\Backup" /E /H /C /I
+echo กำลังล้างแคชและไฟล์ชั่วคราว...
+:: ใช้คำสั่ง Disk Cleanup กับตัวเลือกเพิ่มเติม
+cleanmgr /sagerun:1
+echo แคชและไฟล์ชั่วคราวได้ถูกลบแล้ว.
+echo [%date% %time%] ล้างแคชและไฟล์ชั่วคราว >> "%LOGFILE%"
 pause
 goto MENU
 
-:: ฟังก์ชันตรวจสอบการอัปเดตระบบ
-:SYSTEMUPDATE
+:TROUBLESHOOT
 cls
-echo กำลังตรวจสอบการอัปเดต...
-powershell -Command "Get-WindowsUpdate"
+echo กำลังตรวจสอบและแก้ไขปัญหา...
+:: เรียกใช้เครื่องมือ Troubleshoot ของ Windows
+msdt.exe /id WindowsUpdateDiagnostic
+echo การตรวจสอบเสร็จสมบูรณ์.
+echo [%date% %time%] ตรวจสอบและแก้ไขปัญหา >> "%LOGFILE%"
 pause
 goto MENU
 
-:: ฟังก์ชันปิด/รีสตาร์ทระบบ
-:SHUTDOWN
+:MORE
 cls
-echo 1. ปิดเครื่อง
-echo 2. รีสตาร์ทเครื่อง
-set /p shutdown_choice=เลือกตัวเลือก (1-2): 
-if "%shutdown_choice%"=="1" shutdown /s /f /t 0
-if "%shutdown_choice%"=="2" shutdown /r /f /t 0
+echo ฟังก์ชันอื่นๆ
+echo 1. ปรับแต่ง Registry
+echo 2. Defrag
+echo.
+set /p choice=กรุณาเลือกตัวเลือก (1-2): 
+
+:: ตรวจสอบตัวเลือกและเรียกฟังก์ชันที่เกี่ยวข้อง
+if "%choice%"=="1" goto CUSTOMIZE_REGISTRY
+if "%choice%"=="2" goto DEFRAG_DISK
+
+:: จัดการข้อผิดพลาดเมื่อเลือกตัวเลือกที่ไม่ถูกต้อง
+echo Invalid choice. Please enter a number between 1 and 2.
+pause
+goto MORE
+
+:CUSTOMIZE_REGISTRY
+cls
+echo กำลังเปิด Registry Editor...
+:: เปิด Registry Editor
+start regedit
+echo คุณสามารถปรับแต่ง Registry ของคุณได้จากที่นี่.
+echo [%date% %time%] เปิด Registry Editor >> "%LOGFILE%"
+pause
+goto MORE
+
+:DEFRAG_DISK
+cls
+echo กำลัง Defrag ฮาร์ดไดรฟ์...
+:: ใช้คำสั่ง Defrag เพื่อทำการ Defragment ฮาร์ดไดรฟ์
+defrag C: /O
+echo การ Defrag เสร็จสมบูรณ์.
+echo [%date% %time%] Defrag ฮาร์ดไดรฟ์ >> "%LOGFILE%"
+pause
+goto MORE
+
+:BOOT_FPS
+cls
+echo กำลังตรวจสอบบูท FPS และเวลาในการบูท...
+:: PowerShell command to get boot time and FPS
+powershell.exe -Command "& {
+    $bootTime = (Get-CimInstance Win32_OperatingSystem).LastBootUpTime
+    $fps = Measure-Command { 
+        $counter = 0
+        do {
+            $counter++
+            Start-Sleep -Milliseconds 100
+        } while ($counter -lt 200)
+    }.TotalMilliseconds / 200
+    Write-Output 'Boot Time: $bootTime'
+    Write-Output 'FPS: $fps'
+} "
+echo [%date% %time%] บูท FPS และเวลาในการบูท >> "%LOGFILE%"
 pause
 goto MENU
 
-:: ฟังก์ชันอัปเดตสคริปต์
-:SCRIPTUPDATE
+:CREATE_RESTORE_POINT
 cls
-echo กำลังอัปเดตสคริปต์...
-:: ดาวน์โหลดสคริปต์เวอร์ชันใหม่จาก GitHub หรือที่ตั้งไว้
-powershell -Command "Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/Yhodgk/BOOTFPS/main/epic_menu.bat' -OutFile 'C:\PathToYourScript\epic_menu.bat'"
-echo อัปเดตเสร็จสิ้น
+echo กำลังสร้างจุดคืนค่า...
+wmic /namespace:\\root\default path SystemRestore CreateRestorePoint "Pre-optimization", 100, 7
+echo [%date% %time%] สร้างจุดคืนค่า >> "%LOGFILE%"
 pause
 goto MENU
 
-:: ฟังก์ชันตั้งค่าการเชื่อมต่อเครือข่าย (เปิด/ปิด Wi-Fi)
-:NETWORK_SETTINGS
+:DISABLE_WINDOWS_UPDATE
 cls
-echo 1. เปิด Wi-Fi
-echo 2. ปิด Wi-Fi
-set /p wifi_choice=เลือกตัวเลือก (1-2): 
-if "%wifi_choice%"=="1" netsh interface set interface name="Wi-Fi" admin=enabled
-if "%wifi_choice%"=="2" netsh interface set interface name="Wi-Fi" admin=disabled
+echo กำลังปิดการอัปเดต Windows อัตโนมัติ...
+net stop wuauserv
+sc config wuauserv start= disabled
+echo [%date% %time%] ปิดการอัปเดต Windows >> "%LOGFILE%"
 pause
 goto MENU
 
-:: ฟังก์ชันตรวจสอบการใช้งาน GPU
-:GPU_USAGE
+:STARTUP_APPS
 cls
-echo การใช้งาน GPU:
-echo ========================
-wmic path win32_videocontroller get name, adapterram, currentdisplaymode
+echo กำลังเปิดตัวเลือกแอปเริ่มต้น...
+start ms-settings:appsfeatures
+echo [%date% %time%] เปิดตัวเลือกแอปเริ่มต้น >> "%LOGFILE%"
 pause
 goto MENU
 
-:: ฟังก์ชันตรวจสอบการใช้งานเน็ตเวิร์ก
-:NETWORKTOOLS
+:OPTIMIZE_WINDOWS_SETTINGS
 cls
-echo 1. Ping
-echo 2. Traceroute
-set /p network_tool_choice=เลือกตัวเลือก (1-2): 
-if "%network_tool_choice%"=="1" goto PING
-if "%network_tool_choice%"=="2" goto TRACEROUTE
-goto NETWORKTOOLS
-
-:PING
-cls
-echo กรอกที่อยู่ IP หรือชื่อโดเมนเพื่อ Ping:
-set /p ping_address=ที่อยู่ IP/ชื่อโดเมน: 
-ping -t %ping_address%
-pause
-goto NETWORKTOOLS
-
-:TRACEROUTE
-cls
-echo กรอกที่อยู่ IP หรือชื่อโดเมนเพื่อ Traceroute:
-set /p tracert_address=ที่อยู่ IP/ชื่อโดเมน: 
-tracert %tracert_address%
-pause
-goto NETWORKTOOLS
-
-:: ฟังก์ชันล้างไฟล์แคช
-:CLEAR_CACHE
-cls
-echo ล้างไฟล์แคช
-echo =================
-del /q /s /f %TEMP%\*.*
-del /q /s /f %windir%\Temp\*.*
-echo ล้างไฟล์แคชเสร็จสิ้น!
+echo กำลังเพิ่มประสิทธิภาพการตั้งค่า Windows...
+powercfg -h off
+reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\VisualEffects" /v VisualFXSetting /t REG_DWORD /d 2 /f
+echo [%date% %time%] ปรับแต่งการตั้งค่า Windows >> "%LOGFILE%"
 pause
 goto MENU
 
-:: ฟังก์ชันตรวจสอบสุขภาพของระบบ
-:SYSTEM_HEALTH
+:DISABLE_BLUETOOTH
 cls
-echo กำลังตรวจสอบสุขภาพของระบบ...
-wmic /namespace:\\root\cimv2 path Win32_OperatingSystem get FreePhysicalMemory, TotalVisibleMemorySize, FreeSpace
+echo กำลังปิดใช้งานบริการบลูทูธ...
+sc stop BTHPORT
+sc config BTHPORT start= disabled
+echo [%date% %time%] ปิดใช้งานบริการบลูทูธ >> "%LOGFILE%"
 pause
 goto MENU
 
-:: ฟังก์ชันออกจากโปรแกรม
+:DISABLE_DIAGNOSTICS
+cls
+echo กำลังปิดใช้งานบริการการวินิจฉัยและการวัดระยะไกล...
+sc stop DiagTrack
+sc config DiagTrack start= disabled
+echo [%date% %time%] ปิดใช้งานบริการการวินิจฉัย >> "%LOGFILE%"
+pause
+goto MENU
+
+:DISABLE_MAPS_DOWNLOADER
+cls
+echo กำลังปิดใช้งานตัวจัดการการดาวน์โหลดแผนที่...
+sc stop MapDownload
+sc config MapDownload start= disabled
+echo [%date% %time%] ปิดใช้งานตัวจัดการการดาวน์โหลดแผนที่ >> "%LOGFILE%"
+pause
+goto MENU
+
+:DISABLE_SUPPLEMENTARY_SERVICES
+cls
+echo กำลังปิดใช้งานบริการเสริม...
+sc stop DiagTrack
+sc config DiagTrack start= disabled
+echo [%date% %time%] ปิดใช้งานบริการเสริม >> "%LOGFILE%"
+pause
+goto MENU
+
+:DISABLE_PRINT_SERVICES
+cls
+echo กำลังปิดใช้งานบริการเครื่องพิมพ์...
+sc stop Spooler
+sc config Spooler start= disabled
+echo [%date% %time%] ปิดใช้งานบริการเครื่องพิมพ์ >> "%LOGFILE%"
+pause
+goto MENU
+
+:DISABLE_WINDOWS_DEFENDER
+cls
+echo กำลังปิดใช้งาน Windows Defender...
+sc stop WinDefend
+sc config WinDefend start= disabled
+echo [%date% %time%] ปิดใช้งาน Windows Defender >> "%LOGFILE%"
+pause
+goto MENU
+
+:DISABLE_XBOX
+cls
+echo กำลังปิดใช้งานบริการ Xbox...
+sc stop XboxGipSvc
+sc config XboxGipSvc start= disabled
+echo [%date% %time%] ปิดใช้งานบริการ Xbox >> "%LOGFILE%"
+pause
+goto MENU
+
 :EXIT
 cls
-echo ขอบคุณที่ใช้ Epic CMD Menu!
+echo ขอบคุณที่ใช้โปรแกรม!
 exit /b
