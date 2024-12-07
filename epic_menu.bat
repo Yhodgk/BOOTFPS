@@ -69,6 +69,7 @@ goto MENU
 :CLOSE_PROGRAMS
 cls
 echo กำลังปิดโปรแกรมที่ไม่จำเป็น...
+:: รายการโปรแกรมที่จะปิด
 for %%p in (notepad.exe calc.exe chrome.exe) do (
     taskkill /IM "%%p" /F 2>nul
 )
@@ -84,9 +85,15 @@ echo กำลังปรับแต่งการตั้งค่า Windo
 echo ปิดการสร้างจุดคืนค่าระบบ...
 powercfg -h off
 echo การสร้างจุดคืนค่าระบบได้ถูกปิด
-:: ปรับแต่งการตั้งค่าระบบเพิ่มเติม เช่น Disable unnecessary startup items
-echo ปิด Startup Items...
-:: ... (Add more tuning commands here if needed)
+:: ปิดการใช้งานบริการที่ไม่จำเป็นอื่นๆ เช่น Windows Update, BTHPORT, DiagTrack, Spooler
+sc stop wuauserv
+sc config wuauserv start= disabled
+sc stop BTHPORT
+sc config BTHPORT start= disabled
+sc stop DiagTrack
+sc config DiagTrack start= disabled
+sc stop Spooler
+sc config Spooler start= disabled
 echo [%date% %time%] ปรับแต่งการตั้งค่า Windows >> "%LOGFILE%"
 pause
 goto MENU
@@ -216,7 +223,7 @@ cls
 echo กำลังปิดใช้งานบริการการวินิจฉัยและการวัดระยะไกล...
 sc stop DiagTrack
 sc config DiagTrack start= disabled
-echo [%date% %time%] ปิดใช้งานบริการการวินิจฉัย >> "%LOGFILE%"
+echo [%date% %time%] ปิดใช้งานบริการการวินิจฉัยและการวัดระยะไกล >> "%LOGFILE%"
 pause
 goto MENU
 
@@ -269,3 +276,26 @@ goto MENU
 cls
 echo ขอบคุณที่ใช้โปรแกรม!
 exit /b
+
+:SELECT_ALL
+cls
+echo กำลังเลือกทั้งหมด...
+goto CLOSE_PROGRAMS
+goto TUNE_WINDOWS
+goto CLEAN_CACHE
+goto TROUBLESHOOT
+goto MORE
+goto BOOT_FPS
+goto CREATE_RESTORE_POINT
+goto DISABLE_WINDOWS_UPDATE
+goto STARTUP_APPS
+goto OPTIMIZE_WINDOWS_SETTINGS
+goto DISABLE_BLUETOOTH
+goto DISABLE_DIAGNOSTICS
+goto DISABLE_MAPS_DOWNLOADER
+goto DISABLE_SUPPLEMENTARY_SERVICES
+goto DISABLE_PRINT_SERVICES
+goto DISABLE_WINDOWS_DEFENDER
+goto DISABLE_XBOX
+
+:: Check for elevated privileges and prompt for admin rights if not
