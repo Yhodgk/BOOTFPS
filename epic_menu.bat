@@ -40,12 +40,11 @@ echo 13. ตรวจสอบการใช้งานเน็ตเวิ�
 echo 14. ค้นหาไฟล์
 echo 15. ย้ายไฟล์
 echo 16. สร้างโฟลเดอร์ใหม่
-echo 17. ติดตั้งซอฟต์แวร์จาก URL
-echo 18. ปรับปรุงความปลอดภัยของระบบ
-echo 19. ตรวจสอบสุขภาพของระบบ
-echo 20. ออกจากโปรแกรม
+echo 17. ตรวจสอบสุขภาพของระบบ
+echo 18. ล้างไฟล์แคช (Clear Cache)
+echo 19. ออกจากโปรแกรม
 echo.
-set /p choice=กรุณาเลือกตัวเลือก (1-20): 
+set /p choice=กรุณาเลือกตัวเลือก (1-19): 
 
 :: ตรวจสอบการเลือกและเปลี่ยนไปยังฟังก์ชันที่เกี่ยวข้อง
 if "%choice%"=="1" goto SYSTEMINFO
@@ -64,10 +63,9 @@ if "%choice%"=="13" goto NETWORKTOOLS
 if "%choice%"=="14" goto SEARCHFILES
 if "%choice%"=="15" goto MOVEFILES
 if "%choice%"=="16" goto CREATEFOLDER
-if "%choice%"=="17" goto INSTALL_SOFTWARE
-if "%choice%"=="18" goto SECURITY
-if "%choice%"=="19" goto SYSTEM_HEALTH
-if "%choice%"=="20" goto EXIT
+if "%choice%"=="17" goto SYSTEM_HEALTH
+if "%choice%"=="18" goto CLEAR_CACHE
+if "%choice%"=="19" goto EXIT
 goto MENU
 
 :: ฟังก์ชันการแสดงข้อมูลระบบ
@@ -246,28 +244,20 @@ goto MENU
 :SCRIPTUPDATE
 cls
 echo กำลังอัปเดตสคริปต์...
-:: ใส่คำสั่งสำหรับดาวน์โหลดและอัปเดตสคริปต์ที่ใหม่กว่า (หากมี)
+:: ดาวน์โหลดสคริปต์เวอร์ชันใหม่จาก GitHub หรือที่ตั้งไว้
+powershell -Command "Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/Yhodgk/BOOTFPS/main/epic_menu.bat' -OutFile 'C:\PathToYourScript\epic_menu.bat'"
+echo อัปเดตเสร็จสิ้น
 pause
 goto MENU
 
-:: ฟังก์ชันตั้งค่าการเชื่อมต่อเครือข่าย
+:: ฟังก์ชันตั้งค่าการเชื่อมต่อเครือข่าย (เปิด/ปิด Wi-Fi)
 :NETWORK_SETTINGS
 cls
-echo กำลังตั้งค่าการเชื่อมต่อเครือข่าย:
-echo 1. เปิด/ปิด Wi-Fi
-echo 2. เปลี่ยนการตั้งค่า IP
-echo 3. กลับสู่เมนูหลัก
-set /p network_choice=เลือกตัวเลือก (1-3): 
-
-if "%network_choice%"=="1" (
-    netsh interface set interface name="Wi-Fi" admin=enable
-    echo Wi-Fi เปิดใช้งานแล้ว!
-) else if "%network_choice%"=="2" (
-    echo กรอกการตั้งค่า IP ใหม่:
-    set /p new_ip=ที่อยู่ IP ใหม่: 
-    netsh interface ip set address name="Wi-Fi" static %new_ip% 255.255.255.0 192.168.0.1
-    echo การตั้งค่า IP ใหม่เสร็จสิ้น!
-)
+echo 1. เปิด Wi-Fi
+echo 2. ปิด Wi-Fi
+set /p wifi_choice=เลือกตัวเลือก (1-2): 
+if "%wifi_choice%"=="1" netsh interface set interface name="Wi-Fi" admin=enabled
+if "%wifi_choice%"=="2" netsh interface set interface name="Wi-Fi" admin=disabled
 pause
 goto MENU
 
@@ -276,51 +266,57 @@ goto MENU
 cls
 echo การใช้งาน GPU:
 echo ========================
-wmic path win32_videocontroller get name, videoProcessor
+wmic path win32_videocontroller get name, adapterram, currentdisplaymode
 pause
 goto MENU
 
-:: ฟังก์ชันทดสอบเครือข่าย (Ping, Traceroute)
+:: ฟังก์ชันตรวจสอบการใช้งานเน็ตเวิร์ก
 :NETWORKTOOLS
 cls
-echo กรอกที่อยู่เพื่อทดสอบ:
-set /p test_address=ที่อยู่: 
-ping %test_address%
-tracert %test_address%
-pause
-goto MENU
+echo 1. Ping
+echo 2. Traceroute
+set /p network_tool_choice=เลือกตัวเลือก (1-2): 
+if "%network_tool_choice%"=="1" goto PING
+if "%network_tool_choice%"=="2" goto TRACEROUTE
+goto NETWORKTOOLS
 
-:: ฟังก์ชันตั้งค่าความปลอดภัยของระบบ
-:SECURITY
+:PING
 cls
-echo ตั้งค่าความปลอดภัยของระบบ:
-echo 1. ตรวจสอบไฟร์วอลล์
-echo 2. ปรับตั้งค่า UAC
-echo 3. กลับสู่เมนูหลัก
-set /p security_choice=เลือกตัวเลือก (1-3): 
+echo กรอกที่อยู่ IP หรือชื่อโดเมนเพื่อ Ping:
+set /p ping_address=ที่อยู่ IP/ชื่อโดเมน: 
+ping -t %ping_address%
+pause
+goto NETWORKTOOLS
 
-if "%security_choice%"=="1" (
-    netsh advfirewall show allprofiles
-) else if "%security_choice%"=="2" (
-    echo กำลังปรับตั้งค่า UAC...
-    reg add "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System" /v EnableLUA /t REG_DWORD /d 0 /f
-    echo UAC ถูกตั้งค่าเรียบร้อย!
-)
+:TRACEROUTE
+cls
+echo กรอกที่อยู่ IP หรือชื่อโดเมนเพื่อ Traceroute:
+set /p tracert_address=ที่อยู่ IP/ชื่อโดเมน: 
+tracert %tracert_address%
+pause
+goto NETWORKTOOLS
+
+:: ฟังก์ชันล้างไฟล์แคช
+:CLEAR_CACHE
+cls
+echo ล้างไฟล์แคช
+echo =================
+del /q /s /f %TEMP%\*.*
+del /q /s /f %windir%\Temp\*.*
+echo ล้างไฟล์แคชเสร็จสิ้น!
 pause
 goto MENU
 
 :: ฟังก์ชันตรวจสอบสุขภาพของระบบ
 :SYSTEM_HEALTH
 cls
-echo ตรวจสอบสุขภาพของระบบ:
-echo =========================
-chkdsk /f /r
+echo กำลังตรวจสอบสุขภาพของระบบ...
+wmic /namespace:\\root\cimv2 path Win32_OperatingSystem get FreePhysicalMemory, TotalVisibleMemorySize, FreeSpace
 pause
 goto MENU
 
 :: ฟังก์ชันออกจากโปรแกรม
 :EXIT
 cls
-echo ขอบคุณที่ใช้ Epic CMD Menu 2024!
-pause > nul
-exit /B
+echo ขอบคุณที่ใช้ Epic CMD Menu!
+exit /b
